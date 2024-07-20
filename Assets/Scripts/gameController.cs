@@ -2,16 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class gameController : MonoBehaviour
 {
     private gamestates state = gamestates.betweenround;
-    [SerializeField] private float timeRemaining, betweenTimer, spawnTimer, currSpawnTimer;
-    [SerializeField] private TMP_Text timerText, roundText;
+    [SerializeField] private float timeRemaining, betweenTimer, currBetweenTimer, spawnTimer, currSpawnTimer, currTimeRemaining;
+    [SerializeField] private Text timerText, roundText, crateText;
     [SerializeField] GameObject crate;
     [SerializeField] Transform cratePosition;
-   
+    List<GameObject> crateList;
+    private int currCrates; 
     private int round;
+    public static gameController instance;
     public enum gamestates
     {
         betweenround, 
@@ -21,47 +24,63 @@ public class gameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        instance = this;
         state = gamestates.betweenround;
-        timerText.text = "Time: " + (int)betweenTimer;
-        currSpawnTimer = spawnTimer;
+        timerText.text = "Time: " + (int)(betweenTimer+1);
+        betweenTimer = currBetweenTimer;
+        crateList = new List<GameObject>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        roundText.text = "Round " + round;
+        crateText.text = "Crates: " + currCrates;
+        roundText.text = "Round: " + (int)(round+1);
+
         //Could all just make this a giant switch statement, but fuck it.
-        if (state == gamestates.betweenround && betweenTimer > 0)
+        if (state == gamestates.betweenround && currBetweenTimer > 0)
         {
-            betweenTimer -= Time.deltaTime * 1;
-            timerText.text = "Time: " + (int)betweenTimer;
+            currBetweenTimer -= Time.deltaTime * 1;
+            timerText.text = "Changing Rounds: " + (int)(currBetweenTimer+1);
+            currCrates = 0;
+            foreach(GameObject crate in crateList){
+                Destroy(crate);
+            }
         }
-        else if (betweenTimer <= 0)
+        else if (currBetweenTimer <= 0)
         {
             state = gamestates.currRound;
+            currBetweenTimer = betweenTimer;
+            currTimeRemaining = timeRemaining;
         }
-        if (state == gamestates.currRound && timeRemaining > 0)
+        if (state == gamestates.currRound && currTimeRemaining > 0)
         {
-            timeRemaining -= 1 * Time.deltaTime;
+            currTimeRemaining -= 1 * Time.deltaTime;
             currSpawnTimer -= 1 * Time.deltaTime;
-            if(spawnTimer <= 0)
+            timerText.text = "Current Round: " + (int)(currTimeRemaining+1);
+            if(currSpawnTimer <= 0)
             {
                 spawnCrate();
                 currSpawnTimer = spawnTimer;
             }
             
         }
-        else if (state == gamestates.currRound && timeRemaining <= 0)
+        else if (state == gamestates.currRound && currTimeRemaining <= 0)
         {
-            betweenTimer = 5f;
+            currTimeRemaining = timeRemaining;
             state = gamestates.betweenround;
             round++;
+            
         }
 
     }
     void spawnCrate()
     {
-        Instantiate(crate, cratePosition.position, Quaternion.identity);
-
+        GameObject newCrate = Instantiate(crate, cratePosition.position, Quaternion.identity);
+        crateList.Add(newCrate);
+    }
+    public void addCrate()
+    {
+        currCrates++;
     }
 }

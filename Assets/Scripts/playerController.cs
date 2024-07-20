@@ -61,7 +61,9 @@ public class playerController : MonoBehaviour
 
             for (int i = 0; i < nearestObjs.Count; i++)
             {
-                distance = Vector3.Distance(this.transform.position, nearestObjs[i].transform.position);
+                if(nearestObjs[i])
+                     distance = Vector3.Distance(this.transform.position, nearestObjs[i].transform.position);
+
                 if (distance < lowestDist)
                 {
                     lowestDist = distance;
@@ -73,9 +75,9 @@ public class playerController : MonoBehaviour
 
             for (int i = 0; i < nearestObjs.Count; i++)
             {
-                if (i == lowestDistIndex) nearestObjs[i].gameObject.GetComponent<Interactable>().isLowestDistObj(true);
+                if (i == lowestDistIndex && nearestObjs[i]) nearestObjs[i].gameObject.GetComponent<Interactable>().isLowestDistObj(true);
                 
-                else nearestObjs[i].gameObject.GetComponent<Interactable>().isLowestDistObj(false);
+                else if(nearestObjs[i])nearestObjs[i].gameObject.GetComponent<Interactable>().isLowestDistObj(false);
                 
             }
 
@@ -90,10 +92,14 @@ public class playerController : MonoBehaviour
     {
         if(nearestObjs.Count > 0)
         {
-            nearestObjs[lowestDistIndex].transform.parent.position = hand.position;
-            currObject = nearestObjs[lowestDistIndex].transform.parent.gameObject;
-            currObject.transform.SetParent(transform);
-            currObject.GetComponent<Interactable>().setHolding(true);
+            if (nearestObjs[lowestDistIndex])
+            {
+                nearestObjs[lowestDistIndex].transform.parent.position = hand.position;
+                currObject = nearestObjs[lowestDistIndex].transform.parent.gameObject;
+                currObject.transform.SetParent(transform);
+                currObject.transform.GetChild(0).gameObject.GetComponent<Interactable>().setHolding(true); //Im killing myself
+                                                                                                           //Destroy(currObject.GetComponent<Rigidbody2D>());
+            }
         }
     }
     public void addObj(GameObject obj)
@@ -107,7 +113,10 @@ public class playerController : MonoBehaviour
     void throwing()
     {
         currObject.transform.SetParent(null);
-        currObject.GetComponent<Rigidbody>().AddForce(transform.forward * 3, ForceMode.Impulse);
+       
+        currObject.GetComponent<Rigidbody2D>().AddForce(transform.forward * 3, ForceMode2D.Force);
+        currObject.transform.GetChild(0).gameObject.GetComponent<Interactable>().setHolding(false);
+        
 
     }
 }
