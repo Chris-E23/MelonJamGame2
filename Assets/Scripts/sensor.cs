@@ -5,11 +5,12 @@ using UnityEngine.UI;
 public class sensor : MonoBehaviour
 {
     [SerializeField] private AudioSource soda;
+    [SerializeField] private AudioSource clock;
     private float timeToPlaySoda;
-   
+
     void Start()
     {
-        timeToPlaySoda = 1f;
+      
         
     }
 
@@ -38,9 +39,11 @@ public class sensor : MonoBehaviour
             case "timeAdder":
                 if (gameController.instance.getMoney() >= gameController.instance.getTimeMoney())
                 {
-                    gameController.instance.setTimeCost((int)(gameController.instance.getTimeMoney()*2));
+                    
                     gameController.instance.addTime(gameController.instance.getTime());
                     gameController.instance.removeMoney(gameController.instance.getTimeMoney());
+                    gameController.instance.setTimeCost((int)(gameController.instance.getTimeMoney() * 2));
+                    clock.Play();
                 }
                     
                 break;

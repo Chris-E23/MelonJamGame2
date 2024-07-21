@@ -13,6 +13,7 @@ public class playerController : MonoBehaviour
     private GameObject currObject;
     public LayerMask layersToHit;
     [SerializeField] private GameObject camera;
+   
     
     void Start()
     {
@@ -62,10 +63,6 @@ public class playerController : MonoBehaviour
             // controller.Move(-Vector3.up * Time.deltaTime * 9.8f);
             //Reading Input
 
-
-
-
-
             var input = Input.inputString;
 
         if (!string.IsNullOrEmpty(input))
@@ -91,6 +88,7 @@ public class playerController : MonoBehaviour
         //Finding Closest Object
 
     }
+  
     void pickup()
     {
         
@@ -118,8 +116,8 @@ public class playerController : MonoBehaviour
             
             currObject.transform.SetParent(null);
             currObject.transform.GetChild(0).gameObject.GetComponent<Interactable>().setHolding(false);
+            currObject.GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeRotation;
             currObject.GetComponent<Rigidbody2D>().AddForce(transform.forward * 5, ForceMode2D.Impulse);
-            currObject.GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.None;
             currObject = null;
             
         }

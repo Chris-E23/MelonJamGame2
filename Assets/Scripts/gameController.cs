@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
+using System.Net.Sockets;
 
 public class gameController : MonoBehaviour
 {
@@ -25,6 +26,7 @@ public class gameController : MonoBehaviour
     private int score;
     [SerializeField] private int moneyToRemoveForSpeed, moneyToRemoveForTime, timeToAdd;
     [SerializeField] private Text speedText, timeText;
+    [SerializeField] private AudioSource crateCollector;
     private bool paused;
     public enum gamestates
     {
@@ -53,7 +55,9 @@ public class gameController : MonoBehaviour
     void Update()
     {
         
-        spawnTimer = 3 - .05f * round;
+        if(spawnTimer > 0)
+            spawnTimer = 5 - .1f * round - PlayerPrefs.GetFloat("Speed")*.9f;
+
         currScoreText.text = "Score: " + score;
 
         if (Input.GetKeyDown(KeyCode.Escape) && !paused)
@@ -125,10 +129,11 @@ public class gameController : MonoBehaviour
             
             if(currCrates >= target)
             {
+                target++;
                 state = gamestates.betweenround;
                 round++;
                 speedToAdd += round * .1f;
-
+               
             }
             else
             {
@@ -144,9 +149,15 @@ public class gameController : MonoBehaviour
         {
             gameOverScreen.SetActive(true);
             if (sys.CurrentScore > score)
+            {
                 scoreText.text = "Score: " + score;
+            }
             else
+            {
                 scoreText.text = "New High Score! : " + score;
+                sys.setScore(score);
+            }
+                
 
         }
 
@@ -187,7 +198,7 @@ public class gameController : MonoBehaviour
     public void removeMoney(int money){cratesMoney -= money;}
     public void restart(){SceneManager.LoadScene(1);}
     public void mainMenu(){SceneManager.LoadScene(0);}
-    public void addTime(int time){ currTimeRemaining += time;}
+    public void addTime(int time){ currTimeRemaining += time; timeRemaining += time; }
     
     public void skip()
     {
@@ -232,5 +243,9 @@ public class gameController : MonoBehaviour
     public void addScore(int addition)
     {
         score += addition;
+    }
+    public void playCrateCollector()
+    {
+        crateCollector.Play();
     }
 }

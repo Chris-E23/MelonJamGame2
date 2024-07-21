@@ -39,6 +39,7 @@ using UnityEngine.Events;
             dict[5] = "crateCollector";
             audioPlaying = false;
         time = timeInit;
+        transform.parent.gameObject.GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
 
@@ -140,10 +141,11 @@ using UnityEngine.Events;
                 gameController.instance.gameObject.GetComponent<gameController>().addCrate();
                 if (collision.tag == "crateCollector")
                 {
-                    
-                     //im a terrible programmer LMAO!!!!!
+                //terrible
+                    gameController.instance.playCrateCollector();
                     gameController.instance.addCrateMoney();
                 }
+
                 gameController.instance.addScore(1);
             }
             for(int i = 1; i <= 5; i++)
@@ -154,8 +156,9 @@ using UnityEngine.Events;
                    
                     if (collision.tag == "crateCollector" && i!=5)
                     {
+                        gameController.instance.playCrateCollector();
                         gameController.instance.addCrateMoney();
-                       
+                   
                     }
                     else
                     {
