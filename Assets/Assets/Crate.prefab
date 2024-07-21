@@ -45,6 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0c47345ed192cb4880e9c8743786508, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  num: 0
+  drag: {fileID: 0}
 --- !u!135 &4435631809704475228
 SphereCollider:
   m_ObjectHideFlags: 0

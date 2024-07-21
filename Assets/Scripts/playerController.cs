@@ -34,16 +34,46 @@ public class playerController : MonoBehaviour
 
         Vector3 move = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0);
         controller.Move(move.normalized * Time.deltaTime * playerSpeed);
-       // controller.Move(-Vector3.up * Time.deltaTime * 9.8f);
-       //Reading Input
-        var input = Input.inputString;
+        
+        Vector2 v = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        Collider2D[] col = Physics2D.OverlapPointAll(v);
+
+        if (col.Length > 0)
+        {
+            foreach (Collider2D c in col)
+            {
+               
+                if(c.gameObject.transform.position.x - transform.position.x <= 1 && c.gameObject.transform.position.y - transform.position.y <= 1 && c.tag == "crate")
+                {
+                    currObject = c.gameObject;
+                    //Debug.Log("Collided with: " + c.gameObject.name);
+                }
+                else
+                {
+                    currObject = null;
+                }
+               
+            }
+
+        }
+
+
+            // controller.Move(-Vector3.up * Time.deltaTime * 9.8f);
+            //Reading Input
+
+
+
+
+
+            var input = Input.inputString;
 
         if (!string.IsNullOrEmpty(input))
         {
             switch (input)
             {
                 case "e":
-                    if(!currObject)
+                    if(currObject)
                     pickup();
                     break;
                 case "f":
@@ -53,57 +83,25 @@ public class playerController : MonoBehaviour
                     break;
             }
         }
-        
-      //Reading Input
-        
-        
-        lowestDist = float.MaxValue;
-        lowestDistIndex = 0;
-        if (nearestObjs.Count > 0)
-        {
 
-            for (int i = 0; i < nearestObjs.Count; i++)
-            {
-                if(nearestObjs[i])
-                     distance = Vector3.Distance(this.transform.position, nearestObjs[i].transform.position);
+        //Reading Input
 
-                if (distance < lowestDist)
-                {
-                    lowestDist = distance;
-                    lowestDistIndex = i;
+      
 
-                }
-
-            }
-
-            for (int i = 0; i < nearestObjs.Count; i++)
-            {
-                if (i == lowestDistIndex && nearestObjs[i]) nearestObjs[i].gameObject.GetComponent<Interactable>().isLowestDistObj(true);
-                
-                else if(nearestObjs[i])nearestObjs[i].gameObject.GetComponent<Interactable>().isLowestDistObj(false);
-                
-            }
-
-           
-
-
-        }
         //Finding Closest Object
 
     }
     void pickup()
     {
-        if(nearestObjs.Count > 0)
-        {
-            if (nearestObjs[lowestDistIndex])
-            {
-                nearestObjs[lowestDistIndex].transform.parent.position = hand.position;
-                currObject = nearestObjs[lowestDistIndex].transform.parent.gameObject;
+        
+                currObject.transform.position = hand.position;
+                //currObject = nearestObjs[lowestDistIndex].transform.parent.gameObject;
                 currObject.transform.SetParent(transform);
                 currObject.transform.GetChild(0).gameObject.GetComponent<Interactable>().setHolding(true); //Im killing myself
                                                                                                            //Destroy(currObject.GetComponent<Rigidbody2D>());
-            }
-        }
+            currObject.GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
+            
+
     }
     public void addObj(GameObject obj)
     {
@@ -117,10 +115,13 @@ public class playerController : MonoBehaviour
     {
         if (currObject)
         {
+            
             currObject.transform.SetParent(null);
             currObject.transform.GetChild(0).gameObject.GetComponent<Interactable>().setHolding(false);
-
+            currObject.GetComponent<Rigidbody2D>().AddForce(transform.forward * 5, ForceMode2D.Impulse);
+            currObject.GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.None;
             currObject = null;
+            
         }
        
         

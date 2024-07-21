@@ -15,6 +15,7 @@ TagManager:
   - crateCollector
   - speedAdder
   - timeAdder
+  - floor
   layers:
   - Default
   - TransparentFX

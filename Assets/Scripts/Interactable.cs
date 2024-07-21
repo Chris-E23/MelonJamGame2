@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -16,9 +17,13 @@ using UnityEngine.Events;
          private Transform target;
          private bool conveyer;
         [SerializeField] private int num;
-         private Dictionary<int, string> dict;    
-          
-        void Start()
+         private Dictionary<int, string> dict;
+        bool audioPlaying;
+        [SerializeField] private float timeInit, time;
+        private GameObject[] floors;
+        [SerializeField] private AudioSource drag;
+
+    void Start()
         {
             dict = new Dictionary<int, string>();
             going = false;
@@ -32,19 +37,22 @@ using UnityEngine.Events;
             dict[3] = "Ckill";
             dict[4] = "Dkill";
             dict[5] = "crateCollector";
+            audioPlaying = false;
+        time = timeInit;
     }
 
 
         void Update()
         {
+       
+           
 
-        
             if (going && target && conveyer)
             {
                 transform.parent.gameObject.GetComponent<Rigidbody2D>().AddForce(new Vector3(target.position.x - transform.parent.position.x,0, 0) * 1f, ForceMode2D.Force);
                
             }
-            else if(going && target)
+            else if(going)
             {
                 transform.parent.gameObject.GetComponent<Rigidbody2D>().AddForce(new Vector3(0, target.position.y - transform.parent.position.y, 0) * 1f, ForceMode2D.Force);
             }
@@ -56,17 +64,39 @@ using UnityEngine.Events;
             {
                 conveyer = false;
             }
-        if (Vector3.Magnitude(transform.parent.gameObject.GetComponent<Rigidbody2D>().velocity) > 0 && holding)
+            if (Vector3.Magnitude(transform.parent.gameObject.GetComponent<Rigidbody2D>().velocity) > 0)
             {
-                //playsound
+            //playsound
+            drag.Play();
+            audioPlaying = true;
             }
-           
+        if (audioPlaying)
+        {
+            time -= Time.deltaTime;
+            if(time <= 0)
+            {
+                audioPlaying = false;
+            }
+        }
+        else
+        {
+            drag.Stop();
+            time = timeInit;
+            
+        }
+            if(Vector3.Magnitude(transform.parent.gameObject.GetComponent<Rigidbody2D>().velocity) > 0 && !holding && !going)
+            {
+                transform.parent.gameObject.GetComponent<Rigidbody2D>().AddForce(-transform.parent.gameObject.GetComponent<Rigidbody2D>().velocity * 1, ForceMode2D.Force);
+            }
+            if(transform.parent.gameObject.GetComponent<Rigidbody2D>().angularVelocity > 0f){
+                //transform.parent.gameObject.GetComponent<Rigidbody2D>().AddTorque(transform.parent.gameObject.GetComponent<Rigidbody2D>().angularVelocity*-1f, ForceMode2D.Force);
+            }
             if (holding)
             {
                 conveyer = false;
-                transform.parent.gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(0,0);
+                //transform.parent.gameObject.GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezePosition;
             }
-
+        
 
         }
 
@@ -79,7 +109,7 @@ using UnityEngine.Events;
                
                 going = true;
                 target = collision.gameObject.GetComponent<waterMovement>().getTarget();
-                
+          
 
             }
             else if (collision.tag == "conveyer" && holding == false)
@@ -97,7 +127,7 @@ using UnityEngine.Events;
             if (collision.gameObject.CompareTag("Player"))
             {
                 player = collision.gameObject;
-                isInRange = true; 
+               
                 if(player&&player.GetComponent<playerController>())
                     player.GetComponent<playerController>().addObj(this.gameObject);
                  
@@ -110,9 +140,11 @@ using UnityEngine.Events;
                 gameController.instance.gameObject.GetComponent<gameController>().addCrate();
                 if (collision.tag == "crateCollector")
                 {
+                    
+                     //im a terrible programmer LMAO!!!!!
                     gameController.instance.addCrateMoney();
-                    Destroy(transform.parent.gameObject); //im a terrible programmer LMAO!!!!!
                 }
+                gameController.instance.addScore(1);
             }
             for(int i = 1; i <= 5; i++)
             {
@@ -120,14 +152,14 @@ using UnityEngine.Events;
                 {
                     Destroy(transform.parent.gameObject);
                    
-                    if (collision.tag == "crateCollector")
+                    if (collision.tag == "crateCollector" && i!=5)
                     {
                         gameController.instance.addCrateMoney();
-                        
+                       
                     }
                     else
                     {
-                    gameController.instance.removeCrate();
+                        gameController.instance.removeCrate();
                     }
                 }
             }
@@ -142,7 +174,7 @@ using UnityEngine.Events;
             {
                 isInRange = false;
                 player.GetComponent<playerController>().removeObj(this.gameObject);
-                isClosestItem = false;
+                
             }
             else
             {

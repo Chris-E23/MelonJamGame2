@@ -9,8 +9,8 @@ using Unity.VisualScripting;
 public class gameController : MonoBehaviour
 {
     private gamestates state = gamestates.betweenround;
-    [SerializeField] private float timeRemaining, betweenTimer, currBetweenTimer, spawnTimer, currSpawnTimer, currTimeRemaining;
-    [SerializeField] private Text timerText, roundText, crateText, targetText, crateMoneyText, addTimeText, addSpeedText, scoreText;
+    [SerializeField] private float timeRemaining, betweenTimer, currBetweenTimer, spawnTimer, currSpawnTimer, currTimeRemaining, speedToAdd;
+    [SerializeField] private Text timerText, roundText, crateText, targetText, crateMoneyText, addTimeText, addSpeedText, scoreText, currScoreText;
     [SerializeField] GameObject crate;
     [SerializeField] Transform cratePosition;
     List<GameObject> crateList;
@@ -23,7 +23,7 @@ public class gameController : MonoBehaviour
     private int leftOver;
     private int cratesMoney;
     private int score;
-    [SerializeField] private int moneyToRemoveForSpeed, moneyToRemoveForTime, speedToAdd, timeToAdd;
+    [SerializeField] private int moneyToRemoveForSpeed, moneyToRemoveForTime, timeToAdd;
     [SerializeField] private Text speedText, timeText;
     private bool paused;
     public enum gamestates
@@ -46,11 +46,16 @@ public class gameController : MonoBehaviour
         waitButton.SetActive(false);
         paused = false;
         pauseScreen.SetActive(false);
+        speedToAdd += 1;
     }
 
     // Update is called once per frame
     void Update()
     {
+        
+        spawnTimer = 3 - .05f * round;
+        currScoreText.text = "Score: " + score;
+
         if (Input.GetKeyDown(KeyCode.Escape) && !paused)
         {
             Time.timeScale = 0;
@@ -122,14 +127,15 @@ public class gameController : MonoBehaviour
             {
                 state = gamestates.betweenround;
                 round++;
-                
-                
+                speedToAdd += round * .1f;
+
             }
             else
             {
                 state = gamestates.gameOver;
                 Destroy(player.GetComponent<playerController>());
             }
+            
             currTimeRemaining = timeRemaining;
 
 
@@ -137,7 +143,11 @@ public class gameController : MonoBehaviour
         if(state == gamestates.gameOver)
         {
             gameOverScreen.SetActive(true);
-            
+            if (sys.CurrentScore > score)
+                scoreText.text = "Score: " + score;
+            else
+                scoreText.text = "New High Score! : " + score;
+
         }
 
     }
@@ -171,8 +181,8 @@ public class gameController : MonoBehaviour
         crateList.Add(newCrate);
         
     }
-    public void addCrate(){ score++;  currCrates++;}
-    public void addCrateMoney(){ score++; cratesMoney++;}
+    public void addCrate(){  currCrates++;}
+    public void addCrateMoney(){ cratesMoney++;}
     public void removeCrate(){ currCrates--;}
     public void removeMoney(int money){cratesMoney -= money;}
     public void restart(){SceneManager.LoadScene(1);}
@@ -193,7 +203,7 @@ public class gameController : MonoBehaviour
             state = gamestates.betweenround;
             currTimeRemaining = timeRemaining;
             round++;
-            score++;
+           
         }
         
     }
@@ -201,12 +211,26 @@ public class gameController : MonoBehaviour
     public int getSpeedMoney(){return moneyToRemoveForSpeed;}
     public int getTimeMoney(){return moneyToRemoveForTime;}
     public int getTime(){ return timeToAdd; }
-    public int getSpeed(){return speedToAdd;}
+    public float getSpeed(){return speedToAdd;}
     public int getMoney() { return cratesMoney; }
     public void cont()
     {
         Time.timeScale = 1;
         paused = false;
         pauseScreen.SetActive(false);
+    }
+    public void setTimeCost(int cost)
+    {
+        moneyToRemoveForTime += cost;
+
+    }
+    public void setSpeedCost(int cost)
+    {
+        moneyToRemoveForSpeed += cost;
+
+    }
+    public void addScore(int addition)
+    {
+        score += addition;
     }
 }
