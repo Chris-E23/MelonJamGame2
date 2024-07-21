@@ -49,6 +49,7 @@ public class gameController : MonoBehaviour
         paused = false;
         pauseScreen.SetActive(false);
         speedToAdd += 1;
+        Time.timeScale = 1;
     }
 
     // Update is called once per frame
@@ -56,7 +57,7 @@ public class gameController : MonoBehaviour
     {
         
         if(spawnTimer > 0)
-            spawnTimer = 5 - .1f * round - PlayerPrefs.GetFloat("Speed")*.9f;
+            spawnTimer = 5 - .2f * round - PlayerPrefs.GetFloat("Speed")*.9f;
 
         currScoreText.text = "Score: " + score;
 
@@ -71,7 +72,7 @@ public class gameController : MonoBehaviour
             paused = false;
             pauseScreen.SetActive(false);
         }
-
+        
 
 
         timeText.text = "+ " + timeToAdd + " secs\n" + "Cost: " + moneyToRemoveForTime;
