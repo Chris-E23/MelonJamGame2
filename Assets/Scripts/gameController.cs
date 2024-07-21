@@ -3,22 +3,34 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class gameController : MonoBehaviour
 {
     private gamestates state = gamestates.betweenround;
     [SerializeField] private float timeRemaining, betweenTimer, currBetweenTimer, spawnTimer, currSpawnTimer, currTimeRemaining;
-    [SerializeField] private Text timerText, roundText, crateText;
+    [SerializeField] private Text timerText, roundText, crateText, targetText, crateMoneyText, addTimeText, addSpeedText, scoreText;
     [SerializeField] GameObject crate;
     [SerializeField] Transform cratePosition;
     List<GameObject> crateList;
-    private int currCrates; 
-    private int round;
+    private int currCrates, round; 
     public static gameController instance;
+   [SerializeField] private GameObject A, B, C, D, bad;
+    [SerializeField] private int target;
+    [SerializeField] private GameObject gameOverScreen, player, waitButton, pauseScreen;
+    [SerializeField] private scoreSystem sys;
+    private int leftOver;
+    private int cratesMoney;
+    private int score;
+    [SerializeField] private int moneyToRemoveForSpeed, moneyToRemoveForTime, speedToAdd, timeToAdd;
+    [SerializeField] private Text speedText, timeText;
+    private bool paused;
     public enum gamestates
     {
         betweenround, 
-        currRound
+        currRound,
+        gameOver
 
     }
     // Start is called before the first frame update
@@ -29,23 +41,58 @@ public class gameController : MonoBehaviour
         timerText.text = "Time: " + (int)(betweenTimer+1);
         betweenTimer = currBetweenTimer;
         crateList = new List<GameObject>();
+        leftOver = 0;
+        cratesMoney = 0;
+        waitButton.SetActive(false);
+        paused = false;
+        pauseScreen.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
-        crateText.text = "Crates: " + currCrates;
-        roundText.text = "Round: " + (int)(round+1);
+        if (Input.GetKeyDown(KeyCode.Escape) && !paused)
+        {
+            Time.timeScale = 0;
+            paused = true;
+            pauseScreen.SetActive(true);
+        }
+        else if(Input.GetKeyDown(KeyCode.Escape) && paused)
+        {   Time.timeScale = 1;
+            paused = false;
+            pauseScreen.SetActive(false);
+        }
 
+
+
+        timeText.text = "+ " + timeToAdd + " secs\n" + "Cost: " + moneyToRemoveForTime;
+        speedText.text = "+ " + speedToAdd + " speed\n" + "Cost: " + moneyToRemoveForSpeed;
+
+        crateText.text = "Crates: " + currCrates;
+        roundText.text = "Round: " + (round+1);
+        targetText.text = "Target: " + target;
+        crateMoneyText.text = "Money: " + cratesMoney;
         //Could all just make this a giant switch statement, but fuck it.
         if (state == gamestates.betweenround && currBetweenTimer > 0)
         {
             currBetweenTimer -= Time.deltaTime * 1;
             timerText.text = "Changing Rounds: " + (int)(currBetweenTimer+1);
             currCrates = 0;
+            waitButton.SetActive(true);
             foreach(GameObject crate in crateList){
+                if (crate)
+                {
+                    leftOver++;
+                }
                 Destroy(crate);
             }
+            crateList.Clear();
+            while(leftOver > 0)
+            {
+                leftOver--;
+                target++;
+            }
+           
         }
         else if (currBetweenTimer <= 0)
         {
@@ -63,24 +110,103 @@ public class gameController : MonoBehaviour
                 spawnCrate();
                 currSpawnTimer = spawnTimer;
             }
-            
+            if (currCrates >= target)
+            {
+                waitButton.SetActive(true);
+            }
         }
         else if (state == gamestates.currRound && currTimeRemaining <= 0)
         {
+            
+            if(currCrates >= target)
+            {
+                state = gamestates.betweenround;
+                round++;
+                
+                
+            }
+            else
+            {
+                state = gamestates.gameOver;
+                Destroy(player.GetComponent<playerController>());
+            }
             currTimeRemaining = timeRemaining;
-            state = gamestates.betweenround;
-            round++;
+
+
+        }
+        if(state == gamestates.gameOver)
+        {
+            gameOverScreen.SetActive(true);
             
         }
 
     }
     void spawnCrate()
     {
-        GameObject newCrate = Instantiate(crate, cratePosition.position, Quaternion.identity);
+        GameObject newCrate;
+        int rand = (int)Random.Range(1, 6);
+        switch (rand)
+        {
+            case 1:
+                newCrate = Instantiate(A, cratePosition.position, Quaternion.identity);
+                break;
+            case 2:
+                newCrate = Instantiate(B, cratePosition.position, Quaternion.identity);
+                break;
+            case 3:
+                newCrate = Instantiate(C, cratePosition.position, Quaternion.identity);
+                break;
+            case 4:
+                newCrate = Instantiate(D, cratePosition.position, Quaternion.identity);
+                break;
+            case 5:
+                newCrate = Instantiate(bad, cratePosition.position, Quaternion.identity);
+                break;
+             default:
+                newCrate = Instantiate(bad, cratePosition.position, Quaternion.identity);
+                break;
+
+        }
+       
         crateList.Add(newCrate);
+        
     }
-    public void addCrate()
+    public void addCrate(){ score++;  currCrates++;}
+    public void addCrateMoney(){ score++; cratesMoney++;}
+    public void removeCrate(){ currCrates--;}
+    public void removeMoney(int money){cratesMoney -= money;}
+    public void restart(){SceneManager.LoadScene(1);}
+    public void mainMenu(){SceneManager.LoadScene(0);}
+    public void addTime(int time){ currTimeRemaining += time;}
+    
+    public void skip()
     {
-        currCrates++;
+        if(state == gamestates.betweenround)
+        {
+            state = gamestates.currRound;
+            currTimeRemaining = timeRemaining;
+            currBetweenTimer = betweenTimer;
+            waitButton.SetActive(false);
+        }
+        else if(state == gamestates.currRound)
+        {
+            state = gamestates.betweenround;
+            currTimeRemaining = timeRemaining;
+            round++;
+            score++;
+        }
+        
+    }
+
+    public int getSpeedMoney(){return moneyToRemoveForSpeed;}
+    public int getTimeMoney(){return moneyToRemoveForTime;}
+    public int getTime(){ return timeToAdd; }
+    public int getSpeed(){return speedToAdd;}
+    public int getMoney() { return cratesMoney; }
+    public void cont()
+    {
+        Time.timeScale = 1;
+        paused = false;
+        pauseScreen.SetActive(false);
     }
 }

@@ -13,9 +13,11 @@ public class playerController : MonoBehaviour
     private GameObject currObject;
     public LayerMask layersToHit;
     [SerializeField] private GameObject camera;
+    
     void Start()
     {
-        nearestObjs = new List<GameObject>();
+        currObject = null;
+                nearestObjs = new List<GameObject>();
     }
 
     // Update is called once per frame
@@ -41,6 +43,7 @@ public class playerController : MonoBehaviour
             switch (input)
             {
                 case "e":
+                    if(!currObject)
                     pickup();
                     break;
                 case "f":
@@ -112,11 +115,19 @@ public class playerController : MonoBehaviour
     }
     void throwing()
     {
-        currObject.transform.SetParent(null);
+        if (currObject)
+        {
+            currObject.transform.SetParent(null);
+            currObject.transform.GetChild(0).gameObject.GetComponent<Interactable>().setHolding(false);
+
+            currObject = null;
+        }
        
-        currObject.GetComponent<Rigidbody2D>().AddForce(transform.forward * 3, ForceMode2D.Force);
-        currObject.transform.GetChild(0).gameObject.GetComponent<Interactable>().setHolding(false);
         
 
+    }
+    public void addSpeed(int speed)
+    {
+        playerSpeed += speed;
     }
 }

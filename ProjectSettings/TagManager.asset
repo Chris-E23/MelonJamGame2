@@ -8,6 +8,13 @@ TagManager:
   - water
   - deathZone
   - conveyer
+  - Akill
+  - Bkill
+  - Ckill
+  - Dkill
+  - crateCollector
+  - speedAdder
+  - timeAdder
   layers:
   - Default
   - TransparentFX
